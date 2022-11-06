@@ -24,7 +24,7 @@ public class TaskSimulator extends AbstractSimulator {
         List<AbstractTask> callableVelocity = new LinkedList<>();
         List<AbstractTask> callablesPosition = new LinkedList<>();
         if(viewer != null){ // set stop button handler
-            SimulationView.VisualiserFrame.setStopHandler((a) -> {
+            viewer.getFrame().setStopHandler((a) -> {
                 callablesPosition.forEach(AbstractTask::cancel);
                 callableVelocity.forEach(AbstractTask::cancel);
                 isStopped = true;
@@ -40,7 +40,7 @@ public class TaskSimulator extends AbstractSimulator {
         for(int k = 0; k <= nSteps && !isStopped; k++){
             submitAllAndWait(exec, callableVelocity);
             submitAllAndWait(exec, callablesPosition);
-            if(viewer != null && !isStopped) viewer.display(k*0.001, k);
+            if(viewer != null && !isStopped) viewer.display(bodies,k*0.001, k);
         }
         exec.shutdownNow();
         try {

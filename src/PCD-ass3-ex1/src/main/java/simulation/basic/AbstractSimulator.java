@@ -25,7 +25,6 @@ public abstract class AbstractSimulator implements Simulator {
         bounds = WorldGenerator.createBoundary(dimSimulation);
         bodies = WorldGenerator.createBodies(nBodies, bounds);
         if(this.viewer != null){
-            viewer.setBodies(bodies);
             viewer.setBounds(bounds);
         }
 

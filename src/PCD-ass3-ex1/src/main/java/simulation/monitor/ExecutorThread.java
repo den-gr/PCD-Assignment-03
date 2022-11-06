@@ -5,31 +5,31 @@ import simulation.basic.Boundary;
 import simulation.basic.V2d;
 import simulation.basic.Body;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class ExecutorThread implements Runnable {
     private final static double dt = 0.001;
-    private final List<Body> bodies;
+    private final ArrayList<Body> bodies;
     private final int startInterval;
     private final int finishInterval;
     private final Boundary bounds;
     private final Barrier barrier1;
     private final Barrier barrier2;
-    private final SimulationIteratorMonitor simulationIteratorMonitorImpl;
+    private final SimulationIteratorMonitor simulationIteratorMonitor;
 
-    public ExecutorThread(List<Body> bodies, int startInterval, int finishInterval, Boundary bounds, Barrier b1, Barrier b2, SimulationIteratorMonitor simulationMonitor) {
+    public ExecutorThread(ArrayList<Body> bodies, int startInterval, int finishInterval, Boundary bounds, Barrier b1, Barrier b2, SimulationIteratorMonitor simulationMonitor) {
         this.bodies = bodies;
         this.startInterval = startInterval;
         this.finishInterval = finishInterval;
         this.bounds = bounds;
         this.barrier1 = b1;
         this.barrier2 = b2;
-        this.simulationIteratorMonitorImpl = simulationMonitor;
+        this.simulationIteratorMonitor = simulationMonitor;
     }
 
     public void run() {
-        while (simulationIteratorMonitorImpl.isSimulationNotOver()) {
-            simulationIteratorMonitorImpl.incrementCounter();
+        while (simulationIteratorMonitor.isSimulationNotOver()) {
+            simulationIteratorMonitor.incrementCounter();
             calculateAndUpdateVelocity(startInterval, finishInterval);
             hitAndWait(barrier1);
             updatePositionAndCheckBoundaryCollision(startInterval, finishInterval);

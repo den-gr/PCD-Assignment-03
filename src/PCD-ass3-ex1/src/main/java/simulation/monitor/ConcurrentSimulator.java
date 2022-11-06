@@ -20,11 +20,12 @@ public class ConcurrentSimulator extends AbstractSimulator {
     @Override
     public void execute(long nSteps) {
         simulationIterator = new SimulationIteratorMonitorImpl(nSteps, nThreads, viewer);
+        simulationIterator.setBodies(this.bodies);
         b1 = new BarrierImpl(nThreads, simulationIterator);
         b2 = new BarrierImpl(nThreads, simulationIterator);
 
         if(viewer != null){ // set stop button handler
-            SimulationView.VisualiserFrame.setStopHandler((a) -> {
+            viewer.getFrame().setStopHandler((a) -> {
                 b1.setFinalBarrier();
                 b2.setFinalBarrier();
             });

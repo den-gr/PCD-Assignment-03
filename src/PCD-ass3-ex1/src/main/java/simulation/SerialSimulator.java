@@ -60,7 +60,7 @@ public class SerialSimulator extends AbstractSimulator {
 
 			/* display current stage */
 
-			viewer.display( vt, iter);
+			viewer.display(bodies, vt, iter);
 
 		}
 	}

@@ -1,5 +1,6 @@
 package simulation;
 
+import simulation.monitor.ConcurrentSimulator;
 import simulation.task.TaskSimulator;
 import simulation.monitor.SimpleWaitMonitor;
 import simulation.monitor.SimpleWaitMonitorImpl;
@@ -24,6 +25,7 @@ public class SimulationExecutor {
     private final Chrono ch;
     private final boolean useGui;
 
+
     public SimulationExecutor(boolean USE_GUI, int numIteration, List<Integer> nBodies, List<Integer> nSteps, List<Integer> nThreads){
         this.numIteration = numIteration;
         this.nBodies = nBodies;
@@ -32,9 +34,9 @@ public class SimulationExecutor {
         this.useGui = USE_GUI;
         if(USE_GUI){
             this.viewer = new SimulationView(WINDOW_SIZE,WINDOW_SIZE);
-            SimulationView.VisualiserFrame.setStartHandler((a) -> {
+            this.viewer.getFrame().setStartHandler((a) -> {
                 monitor.simpleNotify();
-                SimulationView.VisualiserFrame.setFocusOnSimulation();
+                this.viewer.getFrame().setFocusOnSimulation();
             });
         }else{
             viewer = null;

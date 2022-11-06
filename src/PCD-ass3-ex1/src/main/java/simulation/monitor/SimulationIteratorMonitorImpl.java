@@ -1,6 +1,9 @@
 package simulation.monitor;
 
+import simulation.basic.Body;
 import simulation.gui.SimulationView;
+
+import java.util.ArrayList;
 
 public class SimulationIteratorMonitorImpl implements SimulationIteratorMonitor {
     private long iter = 0;
@@ -9,6 +12,7 @@ public class SimulationIteratorMonitorImpl implements SimulationIteratorMonitor 
     private final long nThreads;
     private final SimulationView viewer;
     private boolean isNotOver = true;
+    private ArrayList<Body> bodies = null;
 
     public SimulationIteratorMonitorImpl(long nStep, int nThread, SimulationView viewer){
         this.nStep = nStep;
@@ -24,7 +28,8 @@ public class SimulationIteratorMonitorImpl implements SimulationIteratorMonitor 
             iter++;
             partialIter = 0;
             if(viewer != null){
-                viewer.display(iter / 1000.0, iter);
+                if(this.bodies == null) throw new IllegalStateException();
+                viewer.display(bodies,iter / 1000.0, iter);
             }
         }
     }
@@ -41,4 +46,14 @@ public class SimulationIteratorMonitorImpl implements SimulationIteratorMonitor 
     public synchronized void stop() {
         nStep = iter;
     }
+
+    @Override
+    public void setBodies(ArrayList<Body> bodies) {
+        if(this.bodies != null){
+            throw new IllegalStateException("Bodies already set");
+        }
+        this.bodies = bodies;
+    }
+
+
 }
