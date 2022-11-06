@@ -4,6 +4,7 @@ import simulation.basic.Body;
 import simulation.gui.SimulationView;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class SimulationIteratorMonitorImpl implements SimulationIteratorMonitor {
     private long iter = 0;
@@ -29,7 +30,7 @@ public class SimulationIteratorMonitorImpl implements SimulationIteratorMonitor 
             partialIter = 0;
             if(viewer != null){
                 if(this.bodies == null) throw new IllegalStateException();
-                viewer.display(bodies,iter / 1000.0, iter);
+                viewer.display(bodies.stream().map(Body::getPos).collect(Collectors.toList()),iter / 1000.0, iter);
             }
         }
     }

@@ -3,10 +3,11 @@ package simulation.gui;
 import simulation.basic.Body;
 import simulation.basic.Boundary;
 import simulation.basic.P2d;
+import simulation.basic.V2d;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 /**
@@ -30,11 +31,11 @@ public class SimulationView {
     	frame = new VisualiserFrame(w,h);
     }
         
-    public void display(ArrayList<Body> bodies, double vt, long iter){
+    public void display(List<P2d> coordinates, double vt, long iter){
 		if(bounds == null){
 			throw new IllegalStateException("Bounds or bodies are not set");
 		}
-		frame.display(bodies, vt, iter, bounds);
+		frame.display(coordinates, vt, iter, bounds);
     }
 
 	public void setBounds(Boundary bounds){

@@ -1,11 +1,13 @@
 package simulation.task;
 
 import simulation.basic.AbstractSimulator;
+import simulation.basic.Body;
 import simulation.gui.SimulationView;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class TaskSimulator extends AbstractSimulator {
     private final int nThreads;
@@ -40,7 +42,7 @@ public class TaskSimulator extends AbstractSimulator {
         for(int k = 0; k <= nSteps && !isStopped; k++){
             submitAllAndWait(exec, callableVelocity);
             submitAllAndWait(exec, callablesPosition);
-            if(viewer != null && !isStopped) viewer.display(bodies,k*0.001, k);
+            if(viewer != null && !isStopped) viewer.display(bodies.stream().map(Body::getPos).collect(Collectors.toList()),k*0.001, k);
         }
         exec.shutdownNow();
         try {

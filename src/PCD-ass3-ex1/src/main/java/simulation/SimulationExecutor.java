@@ -15,8 +15,6 @@ import java.util.OptionalDouble;
 public class SimulationExecutor {
     final static int WINDOW_SIZE = 700;
     final static int SIMULATION_SIZE = 3;
-
-    private final int numIteration;
     private final List<Integer> nBodies;
     private final List<Integer> nSteps;
     private final List<Integer> nThreads;
@@ -26,8 +24,7 @@ public class SimulationExecutor {
     private final boolean useGui;
 
 
-    public SimulationExecutor(boolean USE_GUI, int numIteration, List<Integer> nBodies, List<Integer> nSteps, List<Integer> nThreads){
-        this.numIteration = numIteration;
+    public SimulationExecutor(boolean USE_GUI, List<Integer> nBodies, List<Integer> nSteps, List<Integer> nThreads){
         this.nBodies = nBodies;
         this.nSteps = nSteps;
         this.nThreads = nThreads;
@@ -46,7 +43,7 @@ public class SimulationExecutor {
 
     public void run(){
        do{
-            Simulator sim = new TaskSimulator(viewer, nBodies.get(0), SIMULATION_SIZE, nThreads.get(0));
+            Simulator sim = new ActorSimulator(viewer, nBodies.get(0), SIMULATION_SIZE);
             ch.start();
             sim.execute(nSteps.get(0));
             ch.stop();
@@ -58,7 +55,7 @@ public class SimulationExecutor {
     /**
      * Method for calculate performance of program
      */
-    public void runMultiple(){
+    public void runMultiple(int numIteration){
         Simulator sim;
         for (Integer n_thread : nThreads){
             for (Integer nBody : nBodies) {
@@ -66,7 +63,7 @@ public class SimulationExecutor {
                     List<Long> times = new LinkedList<>();
                     System.out.println("nBody: " + nBody + " |nStep " + nStep + " |nThread: " + n_thread);
                     for(int i = 0; i < numIteration; i++) {
-                        sim = new TaskSimulator(viewer, nBody, SIMULATION_SIZE, n_thread);
+                        sim = new ConcurrentSimulator(viewer, nBody, SIMULATION_SIZE, n_thread);
                         ch.start();
                         sim.execute(nStep);
                         ch.stop();

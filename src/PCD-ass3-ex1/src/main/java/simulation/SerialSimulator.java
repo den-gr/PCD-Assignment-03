@@ -6,6 +6,8 @@ import simulation.basic.Body;
 import simulation.gui.SimulationView;
 import simulation.basic.V2d;
 
+import java.util.stream.Collectors;
+
 public class SerialSimulator extends AbstractSimulator {
 
 	public SerialSimulator(SimulationView viewer, int nBodies, int dimSimulation) {
@@ -60,7 +62,7 @@ public class SerialSimulator extends AbstractSimulator {
 
 			/* display current stage */
 
-			viewer.display(bodies, vt, iter);
+			viewer.display(bodies.stream().map(Body::getPos).collect(Collectors.toList()), vt, iter);
 
 		}
 	}

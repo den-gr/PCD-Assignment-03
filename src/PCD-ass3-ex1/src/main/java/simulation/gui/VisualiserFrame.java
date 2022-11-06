@@ -1,14 +1,14 @@
 package simulation.gui;
 
-import simulation.basic.Body;
 import simulation.basic.Boundary;
+import simulation.basic.P2d;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
+import java.awt.*;
+import java.util.List;
 
 public class VisualiserFrame extends JFrame {
 
@@ -55,10 +55,10 @@ public class VisualiserFrame extends JFrame {
     }
 
 
-    public void display(ArrayList<Body> bodies, double vt, long iter, Boundary bounds){
+    public void display(List<P2d> coordinates, double vt, long iter, Boundary bounds){
         try {
             SwingUtilities.invokeAndWait(() -> {
-                panel.display(bodies, vt, iter, bounds);
+                panel.display(coordinates, vt, iter, bounds);
                 repaint();
             });
         } catch (Exception ex) {
