@@ -1,4 +1,4 @@
-package simulation;
+package simulation.basic;
 
 import simulation.basic.Physics;
 import simulation.basic.AbstractSimulator;
