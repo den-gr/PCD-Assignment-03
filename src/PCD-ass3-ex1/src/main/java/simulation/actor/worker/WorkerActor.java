@@ -1,4 +1,4 @@
-package simulation.actor.executor;
+package simulation.actor.worker;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -14,13 +14,15 @@ import simulation.basic.Physics;
 import simulation.basic.V2d;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
-public class ExecutorActor extends AbstractBehavior<ExecutorMsg> {
+public class WorkerActor extends AbstractBehavior<WorkerMsg> {
 
-    public record UpdateVelocityMsg(ArrayList<Body> bodies) implements ExecutorMsg {
+    public record UpdateVelocityMsg(List<Body> bodies) implements WorkerMsg {
     }
 
-    public record UpdatePositionMsg(ArrayList<Body> bodies) implements ExecutorMsg {
+    public record UpdatePositionMsg(List<Body> bodies) implements WorkerMsg {
     }
 
     private final int myStart;
@@ -31,11 +33,11 @@ public class ExecutorActor extends AbstractBehavior<ExecutorMsg> {
     private final ActorRef<CoordinatorMsg> myCoordinator;
 
 
-    public static Behavior<ExecutorMsg> create(int start, int end,  Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator){
-        return Behaviors.setup(ctx -> new ExecutorActor(ctx, start, end, bounds, dt, myCoordinator));
+    public static Behavior<WorkerMsg> create(int start, int end, Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator){
+        return Behaviors.setup(ctx -> new WorkerActor(ctx, start, end, bounds, dt, myCoordinator));
     }
 
-    public ExecutorActor(ActorContext<ExecutorMsg> context, int start, int end, Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator) {
+    public WorkerActor(ActorContext<WorkerMsg> context, int start, int end, Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator) {
         super(context);
         this.myStart = start;
         this.myEnd = end;
@@ -45,17 +47,19 @@ public class ExecutorActor extends AbstractBehavior<ExecutorMsg> {
     }
 
     @Override
-    public Receive<ExecutorMsg> createReceive() {
+    public Receive<WorkerMsg> createReceive() {
         return newReceiveBuilder()
                     .onMessage(UpdateVelocityMsg.class, this::onUpdateVelocityMsg)
                     .onMessage(UpdatePositionMsg.class, this::onUpdatePositionMsg)
                     .build();
     }
 
-    private Behavior<ExecutorMsg> onUpdateVelocityMsg(UpdateVelocityMsg message){
-        ArrayList<Body> bodies = message.bodies;
+    private Behavior<WorkerMsg> onUpdateVelocityMsg(UpdateVelocityMsg message){
+        List<Body> bodies = message.bodies;
+        List<Body> updatedBodies = new LinkedList<>();
+//        getContext().getLog().info("Update velocity mystart: " + myStart );
 
-        for (int i = 0; i < bodies.size(); i++) {
+        for (int i = myStart; i < myEnd; i++) {
             Body b = bodies.get(i);
 
             /* compute total force on bodies */
@@ -66,31 +70,28 @@ public class ExecutorActor extends AbstractBehavior<ExecutorMsg> {
 
             /* update velocity */
             b.updateVelocity(acc, dt);
+            updatedBodies.add(b);
         }
 
         /* update virtual time */
 //        getContext().getLog().info("Send feedback");
-        this.myCoordinator.tell(new CoordinatorActor.VelocityUpdateFeedback(bodies));
+        this.myCoordinator.tell(new CoordinatorActor.VelocityUpdateFeedback(updatedBodies));
         return this;
     }
 
-    private Behavior<ExecutorMsg> onUpdatePositionMsg(UpdatePositionMsg message){
-        ArrayList<Body> bodies = message.bodies;
+    private Behavior<WorkerMsg> onUpdatePositionMsg(UpdatePositionMsg message){
+        List<Body> bodies = message.bodies;
+        List<Body> updatedBodies = new LinkedList<>();
+//        getContext().getLog().info("Update position mystart: " + myStart );
 
-        /* compute bodies new pos */
-
-        for (Body b : bodies) {
+        for (int i = myStart; i < myEnd; i++){
+            Body b = bodies.get(i);
             b.updatePos(dt);
-        }
-
-        /* check collisions with boundaries */
-
-        for (Body b : bodies) {
             b.checkAndSolveBoundaryCollision(bounds);
+            updatedBodies.add(b);
         }
 
-//        getContext().getLog().info("Send feedback");
-        this.myCoordinator.tell(new CoordinatorActor.PositionUpdateFeedback(bodies));
+        this.myCoordinator.tell(new CoordinatorActor.PositionUpdateFeedback(updatedBodies));
         return this;
     }
 }

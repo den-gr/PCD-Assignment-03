@@ -47,7 +47,11 @@ public class VisualiserFrame extends JFrame {
     }
 
     public void setStartHandler(ActionListener al){
-        start.addActionListener(al);
+        start.addActionListener(ev -> {
+            stop.doClick();
+            System.out.println("wath");
+            al.actionPerformed(null);
+        });
     }
 
     public  void setStopHandler(ActionListener al){

@@ -24,6 +24,7 @@ public class SimulationExecutor {
     private final SimpleWaitMonitor monitor = new SimpleWaitMonitorImpl();
     private final Chrono ch;
     private final boolean useGui;
+    private boolean isRestarted = false;
 
 
     public SimulationExecutor(boolean USE_GUI, List<Integer> nBodies, List<Integer> nSteps, List<Integer> nThreads){
@@ -35,7 +36,9 @@ public class SimulationExecutor {
             this.viewer = new SimulationView(WINDOW_SIZE,WINDOW_SIZE);
             this.viewer.getFrame().setStartHandler((a) -> {
                 monitor.simpleNotify();
+                isRestarted = true;
                 this.viewer.getFrame().setFocusOnSimulation();
+
             });
         }else{
             viewer = null;
@@ -45,12 +48,15 @@ public class SimulationExecutor {
 
     public void run(){
        do{
-            Simulator sim = new ActorSimulator(viewer, nBodies.get(0), SIMULATION_SIZE);
+            Simulator sim = new ActorSimulator(viewer, nBodies.get(0), SIMULATION_SIZE, nThreads.get(0));
             ch.start();
             sim.execute(nSteps.get(0));
             ch.stop();
             System.out.println("Executor execution, time " + ch.getTime()/1000.0);
-            if(useGui) monitor.simpleWait();
+            if(useGui){
+                if(isRestarted) isRestarted = false;
+                else monitor.simpleWait();
+            }
         } while (useGui);
     }
 

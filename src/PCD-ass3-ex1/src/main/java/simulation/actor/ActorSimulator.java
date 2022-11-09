@@ -7,15 +7,27 @@ import simulation.basic.AbstractSimulator;
 import simulation.gui.SimulationView;
 
 public class ActorSimulator extends AbstractSimulator {
-    public ActorSimulator(SimulationView viewer, int nBodies, int dimSimulation) {
+    private final int nWorkers;
+
+    public ActorSimulator(SimulationView viewer, int nBodies, int dimSimulation, int nWorkers) {
         super(viewer, nBodies, dimSimulation);
+        this.nWorkers = nWorkers;
     }
 
     @Override
     public void execute(long nSteps) {
-        final ActorSystem<CoordinatorMsg> mainActor = ActorSystem.create(CoordinatorActor.create(this.viewer, this.bodies, this.bounds, nSteps), "helloakka");
+
+
+        final ActorSystem<CoordinatorMsg> mainActor = ActorSystem.create(CoordinatorActor.create(this.viewer, this.bodies, this.bounds, nSteps, nWorkers), "Master");
 
         mainActor.tell(new CoordinatorActor.Ciao("Ciaone"));
+        if(viewer != null){
+            viewer.getFrame().setStopHandler(h -> {
+                mainActor.terminate();
+            });
+        }
+
+
 
     }
 }
