@@ -35,8 +35,10 @@ public class SimulationExecutor {
         if(USE_GUI){
             this.viewer = new SimulationView(WINDOW_SIZE,WINDOW_SIZE);
             this.viewer.getFrame().setStartHandler((a) -> {
+                if(!isRestarted){
+                    isRestarted = true;
+                }
                 monitor.simpleNotify();
-                isRestarted = true;
                 this.viewer.getFrame().setFocusOnSimulation();
 
             });
@@ -52,10 +54,13 @@ public class SimulationExecutor {
             ch.start();
             sim.execute(nSteps.get(0));
             ch.stop();
-            System.out.println("Executor execution, time " + ch.getTime()/1000.0);
+            System.out.println("@@@ Executor execution, time " + ch.getTime()/1000.0);
             if(useGui){
-                if(isRestarted) isRestarted = false;
-                else monitor.simpleWait();
+                if(!isRestarted) {
+                    System.out.println("Wait");
+                    monitor.simpleWait();
+                }
+                isRestarted = false;
             }
         } while (useGui);
     }

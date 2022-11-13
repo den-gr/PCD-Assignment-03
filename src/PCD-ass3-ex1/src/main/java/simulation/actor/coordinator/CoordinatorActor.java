@@ -103,10 +103,15 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
             var positions = this.bodies.stream()
                     .map(Body::getPos)
                     .collect(Collectors.toList());
-            if(viewer != null) viewer.display(positions, vt, iter);
+            if(viewer != null){
+                viewer.display(positions, vt, iter);
+            }
             refs.forEach(e -> e.tell(new WorkerActor.UpdateVelocityMsg(this.bodies)));
             resetBuffer();
-            if(iter >= nSteps) return Behaviors.stopped();
+            if(iter >= nSteps) {
+                getContext().getSystem().terminate();
+                return Behaviors.stopped();
+            }
         }
 //        getContext().getLog().info("Position Update feedback  incomplete");
         return this;

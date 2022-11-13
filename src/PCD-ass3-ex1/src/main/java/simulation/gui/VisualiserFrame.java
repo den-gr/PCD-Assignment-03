@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
 
 public class VisualiserFrame extends JFrame {
@@ -47,14 +48,20 @@ public class VisualiserFrame extends JFrame {
     }
 
     public void setStartHandler(ActionListener al){
+        for(ActionListener a : start.getActionListeners()){
+            start.removeActionListener(a);
+        }
+
         start.addActionListener(ev -> {
             stop.doClick();
-            System.out.println("wath");
             al.actionPerformed(null);
         });
     }
 
-    public  void setStopHandler(ActionListener al){
+    public void setStopHandler(ActionListener al){
+        for(ActionListener a : stop.getActionListeners()){
+            stop.removeActionListener(a);
+        }
         stop.addActionListener(al);
     }
 
