@@ -23,18 +23,19 @@ public class ActorSimulator extends AbstractSimulator {
     public void execute(long nSteps) {
 
         System.out.println("Execute");
-        final ActorSystem<CoordinatorMsg> mainActor = ActorSystem.create(CoordinatorActor.create(this.viewer, this.bodies, this.bounds, nSteps, nWorkers), "Master");
-        mainActor.whenTerminated().onComplete(c -> {
+        final ActorSystem<CoordinatorMsg> actorSystem = ActorSystem.create(CoordinatorActor.create(this.viewer, this.bodies, this.bounds, nSteps, nWorkers), "Master");
+        actorSystem.whenTerminated().onComplete(c -> {
             System.out.println("Actor system terminated");
             monitor.simpleNotify();
             return c.get();
-        }, ExecutionContext.fromExecutor(mainActor.executionContext()));
+        }, ExecutionContext.fromExecutor(actorSystem.executionContext()));
 
 
-        mainActor.tell(new CoordinatorActor.Ciao("Ciaone"));
+        actorSystem.tell(new CoordinatorActor.PositionUpdateFeedback(this.bodies));
+
         if(viewer != null){
             viewer.getFrame().setStopHandler(h -> {
-                mainActor.terminate();
+                actorSystem.terminate();
             });
         }
 

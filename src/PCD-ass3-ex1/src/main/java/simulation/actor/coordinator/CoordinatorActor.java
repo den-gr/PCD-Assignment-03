@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
-    public record Ciao(String name) implements CoordinatorMsg {
-    }
 
     public record VelocityUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {
     }
@@ -35,7 +33,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     private final long nSteps;
     private final int nWorkers;
 
-    private int calculatedPartitions = 0;
+    private int calculatedPartitions;
 
     private final List<List<Body>> buffer;
 
@@ -44,21 +42,25 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
     private final ActorRef<ViewActor.UpdateViewMsg> viewerRef;
 
-
     public CoordinatorActor(ActorContext<CoordinatorMsg> context, SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
         super(context);
         this.bodies = bodies;
         this.bounds = bounds;
         this.nSteps = nSteps;
         this.nWorkers = nWorkers;
+        this.calculatedPartitions = nWorkers - 1;
         this.buffer = new LinkedList<>();
         if(viewer != null){
             viewerRef = getContext().spawn(ViewActor.create(viewer), "viewer");
         }else{
             viewerRef = null;
         }
-
-
+        for(int i = 0; i < nWorkers; i++){
+            int myStart = bodies.size() * i / nWorkers;
+            int myEnd = bodies.size() * (i+1) / nWorkers;
+            refs.add(getContext()
+                    .spawn(WorkerActor.create( myStart, myEnd, bounds, DT, getContext().getSelf()), "executor"+i));
+        }
     }
 
     public static Behavior<CoordinatorMsg> create(SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
@@ -68,24 +70,9 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     @Override
     public Receive<CoordinatorMsg> createReceive() {
         return newReceiveBuilder()
-                .onMessage(Ciao.class, this::onSayHello)
                 .onMessage(VelocityUpdateFeedback.class, this::onVelocityUpdateFeedback)
                 .onMessage(PositionUpdateFeedback.class, this::onPositionUpdateFeedback)
                 .build();
-    }
-
-    private Behavior<CoordinatorMsg> onSayHello(Ciao command) {
-        getContext().getLog().info("Spawn an executor actor");
-        for(int i = 0; i < nWorkers; i++){
-            int myStart = bodies.size() * i / nWorkers;
-            int myEnd = bodies.size() * (i+1) / nWorkers;
-            refs.add(getContext()
-                    .spawn(WorkerActor.create( myStart, myEnd, bounds, DT, getContext().getSelf()), "executor"+i));
-        }
-
-        getContext().getSelf().tell(new PositionUpdateFeedback(this.bodies));
-        this.calculatedPartitions = nWorkers - 1;
-        return this;
     }
 
     private Behavior<CoordinatorMsg> onVelocityUpdateFeedback(VelocityUpdateFeedback msg){
