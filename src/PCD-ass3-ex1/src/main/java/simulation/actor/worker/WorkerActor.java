@@ -37,7 +37,7 @@ public class WorkerActor extends AbstractBehavior<WorkerMsg> {
         return Behaviors.setup(ctx -> new WorkerActor(ctx, start, end, bounds, dt, myCoordinator));
     }
 
-    public WorkerActor(ActorContext<WorkerMsg> context, int start, int end, Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator) {
+    private WorkerActor(ActorContext<WorkerMsg> context, int start, int end, Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator) {
         super(context);
         this.myStart = start;
         this.myEnd = end;

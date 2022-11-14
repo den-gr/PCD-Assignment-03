@@ -3,6 +3,7 @@ package simulation.actor.coordinator;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+import simulation.actor.view.ViewActor;
 import simulation.actor.worker.WorkerActor;
 import simulation.actor.worker.WorkerMsg;
 import simulation.basic.Body;
@@ -25,7 +26,6 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     public record PositionUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {
     }
 
-    private final  SimulationView viewer;
     private ArrayList<Body> bodies;
     private final Boundary bounds;
     private double vt = 0;
@@ -42,15 +42,23 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     //TODO debito tecnico
     private final List<ActorRef<WorkerMsg>> refs = new LinkedList<>();
 
+    private final ActorRef<ViewActor.UpdateViewMsg> viewerRef;
+
 
     public CoordinatorActor(ActorContext<CoordinatorMsg> context, SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
         super(context);
-        this.viewer = viewer;
         this.bodies = bodies;
         this.bounds = bounds;
         this.nSteps = nSteps;
         this.nWorkers = nWorkers;
         this.buffer = new LinkedList<>();
+        if(viewer != null){
+            viewerRef = getContext().spawn(ViewActor.create(viewer), "viewer");
+        }else{
+            viewerRef = null;
+        }
+
+
     }
 
     public static Behavior<CoordinatorMsg> create(SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
@@ -98,13 +106,13 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         if(this.calculatedPartitions == nWorkers) {
 //            getContext().getLog().info("Position Update feedback complete");
             updateBodies();
-            vt = vt + DT;
             iter++;
-            var positions = this.bodies.stream()
-                    .map(Body::getPos)
-                    .collect(Collectors.toList());
-            if(viewer != null){
-                viewer.display(positions, vt, iter);
+            if(viewerRef != null){
+                vt = vt + DT;
+                var positions = this.bodies.stream()
+                        .map(Body::getPos)
+                        .collect(Collectors.toList());
+                this.viewerRef.tell(new ViewActor.UpdateViewMsg(positions, vt, iter));
             }
             refs.forEach(e -> e.tell(new WorkerActor.UpdateVelocityMsg(this.bodies)));
             resetBuffer();
