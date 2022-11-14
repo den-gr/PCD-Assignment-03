@@ -1,4 +1,4 @@
-package simulation.monitor;
+package utils;
 
 public interface SimpleWaitMonitor {
     void simpleWait();

@@ -1,16 +1,13 @@
 package simulation.actor;
 
-import akka.Done;
 import akka.actor.typed.ActorSystem;
 import scala.concurrent.ExecutionContext;
 import simulation.actor.coordinator.CoordinatorActor;
 import simulation.actor.coordinator.CoordinatorMsg;
 import simulation.basic.AbstractSimulator;
 import simulation.gui.SimulationView;
-import simulation.monitor.SimpleWaitMonitor;
-import simulation.monitor.SimpleWaitMonitorImpl;
-
-import java.awt.*;
+import utils.SimpleWaitMonitor;
+import utils.SimpleWaitMonitorImpl;
 
 public class ActorSimulator extends AbstractSimulator {
     private final int nWorkers;

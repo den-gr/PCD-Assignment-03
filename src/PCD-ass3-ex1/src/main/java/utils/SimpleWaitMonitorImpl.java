@@ -1,6 +1,4 @@
-package simulation.monitor;
-
-import simulation.monitor.SimpleWaitMonitor;
+package utils;
 
 public class SimpleWaitMonitorImpl implements SimpleWaitMonitor {
 
