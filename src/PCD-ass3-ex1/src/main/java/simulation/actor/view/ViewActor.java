@@ -1,10 +1,13 @@
 package simulation.actor.view;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import simulation.actor.coordinator.CoordinatorActor.*;
+import simulation.actor.coordinator.CoordinatorMsg;
 import simulation.basic.P2d;
 import simulation.gui.SimulationView;
 
@@ -14,14 +17,16 @@ public class ViewActor extends AbstractBehavior<ViewActor.UpdateViewMsg> {
     public record UpdateViewMsg(List<P2d> positions, double vt, long iter){}
 
     private final SimulationView viewer;
+    private final ActorRef<CoordinatorMsg> coordinatorRef;
 
-    private ViewActor(ActorContext<UpdateViewMsg> context, SimulationView viewer) {
+    private ViewActor(ActorContext<UpdateViewMsg> context, SimulationView viewer, ActorRef<CoordinatorMsg> coordinatorRef) {
         super(context);
         this.viewer = viewer;
+        this.coordinatorRef = coordinatorRef;
     }
 
-    public static Behavior<UpdateViewMsg> create(SimulationView viewer){
-        return Behaviors.setup(ctx -> new ViewActor(ctx, viewer));
+    public static Behavior<UpdateViewMsg> create(SimulationView viewer, ActorRef<CoordinatorMsg> coordinatorRef){
+        return Behaviors.setup(ctx -> new ViewActor(ctx, viewer, coordinatorRef));
     }
 
     @Override
@@ -33,6 +38,7 @@ public class ViewActor extends AbstractBehavior<ViewActor.UpdateViewMsg> {
 
     private Behavior<UpdateViewMsg> onUpdateViewMsg(UpdateViewMsg message) {
         this.viewer.display(message.positions, message.vt, message.iter);
+        this.coordinatorRef.tell(new ViewUpdateFeedback());
         return this;
     }
 }

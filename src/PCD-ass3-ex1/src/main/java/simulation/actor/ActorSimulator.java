@@ -33,11 +33,7 @@ public class ActorSimulator extends AbstractSimulator {
 
         actorSystem.tell(new CoordinatorActor.PositionUpdateFeedback(this.bodies));
 
-        if(viewer != null){
-            viewer.getFrame().setStopHandler(h -> {
-                actorSystem.terminate();
-            });
-        }
+        if(viewer != null) viewer.getFrame().setStopHandler(h -> actorSystem.terminate());
 
         monitor.simpleWait();
     }

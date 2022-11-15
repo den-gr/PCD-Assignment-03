@@ -75,7 +75,7 @@ public class SimulationExecutor {
                     List<Long> times = new LinkedList<>();
                     System.out.println("nBody: " + nBody + " |nStep " + nStep + " |nThread: " + n_thread);
                     for(int i = 0; i < numIteration; i++) {
-                        sim = new ConcurrentSimulator(viewer, nBody, SIMULATION_SIZE, n_thread);
+                        sim = new ActorSimulator(viewer, nBody, SIMULATION_SIZE, n_thread);
                         ch.start();
                         sim.execute(nStep);
                         ch.stop();

@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.List;
 
 public class VisualiserFrame extends JFrame {
@@ -75,9 +74,6 @@ public class VisualiserFrame extends JFrame {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    };
-
-    public void updateScale(double k) {
-        panel.updateScale(k);
     }
+
 }

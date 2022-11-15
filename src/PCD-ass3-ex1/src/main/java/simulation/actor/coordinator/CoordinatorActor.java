@@ -18,14 +18,13 @@ import java.util.stream.Collectors;
 
 public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
-    public record VelocityUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {
-    }
+    public record VelocityUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {}
 
-    public record PositionUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {
-    }
+    public record PositionUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {}
+
+    public record ViewUpdateFeedback() implements CoordinatorMsg {}
 
     private ArrayList<Body> bodies;
-    private final Boundary bounds;
     private double vt = 0;
     private final double DT = 0.001;
     private long iter = 0;
@@ -42,16 +41,18 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
     private final ActorRef<ViewActor.UpdateViewMsg> viewerRef;
 
+    private boolean isViewed = true;
+    private boolean areBodyUpdated = true;
+
     public CoordinatorActor(ActorContext<CoordinatorMsg> context, SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
         super(context);
         this.bodies = bodies;
-        this.bounds = bounds;
         this.nSteps = nSteps;
         this.nWorkers = nWorkers;
         this.calculatedPartitions = nWorkers - 1;
         this.buffer = new LinkedList<>();
         if(viewer != null){
-            viewerRef = getContext().spawn(ViewActor.create(viewer), "viewer");
+            viewerRef = getContext().spawn(ViewActor.create(viewer, getContext().getSelf()), "viewer");
         }else{
             viewerRef = null;
         }
@@ -69,10 +70,26 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
     @Override
     public Receive<CoordinatorMsg> createReceive() {
-        return newReceiveBuilder()
+        var receiverBuilder = newReceiveBuilder();
+        if(this.viewerRef != null){
+            receiverBuilder.onMessage(ViewUpdateFeedback.class, this::onViewUpdateFeedback);
+        }
+
+        return receiverBuilder
                 .onMessage(VelocityUpdateFeedback.class, this::onVelocityUpdateFeedback)
                 .onMessage(PositionUpdateFeedback.class, this::onPositionUpdateFeedback)
                 .build();
+    }
+
+    private Behavior<CoordinatorMsg> onViewUpdateFeedback(ViewUpdateFeedback message) {
+        isViewed = true;
+        if(iter >= nSteps) { //terminate simulation with viewer
+            getContext().getSystem().terminate();
+            return Behaviors.stopped();
+        }else if(areBodyUpdated) {
+            startIteration();
+        }
+        return this;
     }
 
     private Behavior<CoordinatorMsg> onVelocityUpdateFeedback(VelocityUpdateFeedback msg){
@@ -82,8 +99,6 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
             updateBodies();
             refs.forEach(e -> e.tell(new WorkerActor.UpdatePositionMsg(this.bodies)));
             resetBuffer();
-        }else{
-//            getContext().getLog().info("Velocity Update feedback incomplete");
         }
         return this;
     }
@@ -91,33 +106,51 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     private Behavior<CoordinatorMsg> onPositionUpdateFeedback(PositionUpdateFeedback msg){
         addBodies(msg.bodies);
         if(this.calculatedPartitions == nWorkers) {
-//            getContext().getLog().info("Position Update feedback complete");
             updateBodies();
+            resetBuffer();
             iter++;
-            if(viewerRef != null){
+            if(viewerRef != null){// update view with a Viewer actor
                 vt = vt + DT;
                 var positions = this.bodies.stream()
                         .map(Body::getPos)
                         .collect(Collectors.toList());
                 this.viewerRef.tell(new ViewActor.UpdateViewMsg(positions, vt, iter));
-            }
-            refs.forEach(e -> e.tell(new WorkerActor.UpdateVelocityMsg(this.bodies)));
-            resetBuffer();
-            if(iter >= nSteps) {
+                areBodyUpdated = true;
+                if(isViewed){
+                    startIteration();
+                }
+            }else if(iter >= nSteps) { // terminate simulation without viewer
                 getContext().getSystem().terminate();
                 return Behaviors.stopped();
+            }else{ // start new iteration
+                startIteration();
             }
         }
-//        getContext().getLog().info("Position Update feedback  incomplete");
         return this;
     }
 
+    /**
+     * Start a new simulation iteration
+     */
+    private void startIteration(){
+        this.isViewed = false;
+        this.areBodyUpdated = false;
+        refs.forEach(e -> e.tell(new WorkerActor.UpdateVelocityMsg(this.bodies)));
+    }
+
+    /**
+     * Unite partial lists of updated bodies
+     */
     private void updateBodies(){
         this.bodies = this.buffer.stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    /**
+     * Add a part of updated bodies to the actor buffer
+     * @param bodies partition of updated bodies
+     */
     private void addBodies(List<Body> bodies){
         this.calculatedPartitions++;
         this.buffer.add(bodies);
