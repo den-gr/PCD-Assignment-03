@@ -23,6 +23,7 @@ public class ViewActor extends AbstractBehavior<ViewActor.UpdateViewMsg> {
         super(context);
         this.viewer = viewer;
         this.coordinatorRef = coordinatorRef;
+        viewer.getFrame().setStopHandler(h -> getContext().getSystem().terminate());
     }
 
     public static Behavior<UpdateViewMsg> create(SimulationView viewer, ActorRef<CoordinatorMsg> coordinatorRef){

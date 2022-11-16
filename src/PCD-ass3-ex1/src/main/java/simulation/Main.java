@@ -3,7 +3,7 @@ package simulation;
 import java.util.List;
 
 public class Main {
-    final static boolean USE_GUI = false;
+    final static boolean USE_GUI = true;
     final static boolean SINGLE_EXECUTION = true;
     final static int NUM_ITERATION = 3;
 

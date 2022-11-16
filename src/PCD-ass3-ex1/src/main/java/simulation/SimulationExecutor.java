@@ -1,8 +1,6 @@
 package simulation;
 
 import simulation.actor.ActorSimulator;
-import simulation.basic.SerialSimulator;
-import simulation.monitor.ConcurrentSimulator;
 import utils.SimpleWaitMonitor;
 import utils.SimpleWaitMonitorImpl;
 import utils.Chrono;
@@ -24,7 +22,6 @@ public class SimulationExecutor {
     private final Chrono ch;
     private final boolean useGui;
     private boolean isRestarted = false;
-
 
     public SimulationExecutor(boolean USE_GUI, List<Integer> nBodies, List<Integer> nSteps, List<Integer> nThreads){
         this.nBodies = nBodies;
@@ -91,18 +88,5 @@ public class SimulationExecutor {
                 }
             }
         }
-    }
-
-    /**
-     * Run serial version of program
-     */
-    public void runSerial(){
-        Chrono ch = new Chrono();
-        Simulator sim = new SerialSimulator(viewer, nBodies.get(0), SIMULATION_SIZE);
-        ch.start();
-        sim.execute(nSteps.get(0));
-        ch.stop();
-        System.out.println("SERIAL: nBody: " + nBodies.get(0) + " |nStep " + nSteps.get(0));
-        System.out.println("Executor execution, time " + ch.getTime()/1000.0);
     }
 }
