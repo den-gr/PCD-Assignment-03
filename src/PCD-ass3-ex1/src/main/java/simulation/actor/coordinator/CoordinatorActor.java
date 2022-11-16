@@ -62,6 +62,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
             refs.add(getContext()
                     .spawn(WorkerActor.create( myStart, myEnd, bounds, DT, getContext().getSelf()), "executor"+i));
         }
+        refs.forEach(e -> e.tell(new WorkerActor.SetupWorkerMsg()));
     }
 
     public static Behavior<CoordinatorMsg> create(SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
