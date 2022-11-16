@@ -16,17 +16,18 @@ import simulation.basic.V2d;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Worker actor have two cyclic behaviors: update velocity and update position
+ */
 public class WorkerActor extends AbstractBehavior<WorkerMsg> {
     public record SetupWorkerMsg() implements WorkerMsg{}
     public record UpdateVelocityMsg(List<Body> bodies) implements WorkerMsg {}
     public record UpdatePositionMsg(List<Body> bodies) implements WorkerMsg {}
-
     private final int myStart;
     private final int myEnd;
     private final Boundary bounds;
     private final double dt;
     private final ActorRef<CoordinatorMsg> myCoordinator;
-
 
     public static Behavior<WorkerMsg> create(int start, int end, Boundary bounds, double dt, ActorRef<CoordinatorMsg> myCoordinator){
         return Behaviors.setup(ctx -> new WorkerActor(ctx, start, end, bounds, dt, myCoordinator));
