@@ -39,7 +39,7 @@ public class ViewActor extends AbstractBehavior<ViewActor.UpdateViewMsg> {
 
     private Behavior<UpdateViewMsg> onUpdateViewMsg(UpdateViewMsg message) {
         this.viewer.display(message.positions, message.vt, message.iter);
-        this.coordinatorRef.tell(new ViewUpdateFeedback());
+        this.coordinatorRef.tell(new ViewUpdateResult());
         return this;
     }
 }

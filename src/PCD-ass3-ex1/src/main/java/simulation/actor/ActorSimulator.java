@@ -31,7 +31,7 @@ public class ActorSimulator extends AbstractSimulator {
         }, ExecutionContext.fromExecutor(actorSystem.executionContext()));
 
         //start simulation
-        actorSystem.tell(new CoordinatorActor.PositionUpdateFeedback(this.bodies));
+        actorSystem.tell(new CoordinatorActor.PositionUpdateResult(this.bodies));
 
         //wait simulation termination
         monitor.simpleWait();

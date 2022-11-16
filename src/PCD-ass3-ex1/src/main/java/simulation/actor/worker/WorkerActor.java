@@ -13,7 +13,6 @@ import simulation.basic.Boundary;
 import simulation.basic.Physics;
 import simulation.basic.V2d;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,7 +74,7 @@ public class WorkerActor extends AbstractBehavior<WorkerMsg> {
 
         /* update virtual time */
 //        getContext().getLog().info("Send feedback");
-        this.myCoordinator.tell(new CoordinatorActor.VelocityUpdateFeedback(updatedBodies));
+        this.myCoordinator.tell(new CoordinatorActor.VelocityUpdateResult(updatedBodies));
         return this;
     }
 
@@ -91,7 +90,7 @@ public class WorkerActor extends AbstractBehavior<WorkerMsg> {
             updatedBodies.add(b);
         }
 
-        this.myCoordinator.tell(new CoordinatorActor.PositionUpdateFeedback(updatedBodies));
+        this.myCoordinator.tell(new CoordinatorActor.PositionUpdateResult(updatedBodies));
         return this;
     }
 }

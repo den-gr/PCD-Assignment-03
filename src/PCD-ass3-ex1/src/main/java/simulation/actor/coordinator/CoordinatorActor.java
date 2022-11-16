@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 
 public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
-    public record VelocityUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {}
+    public record VelocityUpdateResult(List<Body> bodies) implements CoordinatorMsg {}
 
-    public record PositionUpdateFeedback(List<Body> bodies) implements CoordinatorMsg {}
+    public record PositionUpdateResult(List<Body> bodies) implements CoordinatorMsg {}
 
-    public record ViewUpdateFeedback() implements CoordinatorMsg {}
+    public record ViewUpdateResult() implements CoordinatorMsg {}
 
     private ArrayList<Body> bodies;
     private double vt = 0;
@@ -72,16 +72,16 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     public Receive<CoordinatorMsg> createReceive() {
         var receiverBuilder = newReceiveBuilder();
         if(this.viewerRef != null){
-            receiverBuilder.onMessage(ViewUpdateFeedback.class, this::onViewUpdateFeedback);
+            receiverBuilder.onMessage(ViewUpdateResult.class, this::onViewUpdateFeedback);
         }
 
         return receiverBuilder
-                .onMessage(VelocityUpdateFeedback.class, this::onVelocityUpdateFeedback)
-                .onMessage(PositionUpdateFeedback.class, this::onPositionUpdateFeedback)
+                .onMessage(VelocityUpdateResult.class, this::onVelocityUpdateFeedback)
+                .onMessage(PositionUpdateResult.class, this::onPositionUpdateFeedback)
                 .build();
     }
 
-    private Behavior<CoordinatorMsg> onViewUpdateFeedback(ViewUpdateFeedback message) {
+    private Behavior<CoordinatorMsg> onViewUpdateFeedback(ViewUpdateResult message) {
         isViewed = true;
         if(iter >= nSteps) { //terminate simulation with viewer
             getContext().getSystem().terminate();
@@ -92,7 +92,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         return this;
     }
 
-    private Behavior<CoordinatorMsg> onVelocityUpdateFeedback(VelocityUpdateFeedback msg){
+    private Behavior<CoordinatorMsg> onVelocityUpdateFeedback(VelocityUpdateResult msg){
         addBodies(msg.bodies);
         if(this.calculatedPartitions == nWorkers){
 //            getContext().getLog().info("Velocity Update feedback complete");
@@ -103,7 +103,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         return this;
     }
 
-    private Behavior<CoordinatorMsg> onPositionUpdateFeedback(PositionUpdateFeedback msg){
+    private Behavior<CoordinatorMsg> onPositionUpdateFeedback(PositionUpdateResult msg){
         addBodies(msg.bodies);
         if(this.calculatedPartitions == nWorkers) {
             updateBodies();
