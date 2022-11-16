@@ -68,7 +68,6 @@ public class WorkerActor extends AbstractBehavior<WorkerMsg> {
 
         private Behavior<WorkerMsg> onUpdateVelocityMsg(UpdateVelocityMsg message){
             List<Body> updatedBodies = new LinkedList<>();
-
             for (int i = myStart; i < myEnd; i++) {
                 Body b = message.bodies.get(i);
 

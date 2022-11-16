@@ -15,6 +15,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Main actor that creates and coordinate the workers and view actors
+ */
 public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
     public record SetupCoordinatorActorMsg() implements CoordinatorMsg {}
@@ -51,6 +54,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         }else{
             viewerRef = null;
         }
+        //create workers
         for(int i = 0; i < nWorkers; i++){
             int myStart = bodies.size() * i / nWorkers;
             int myEnd = bodies.size() * (i+1) / nWorkers;
@@ -69,7 +73,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         return newReceiveBuilder()
                 .onMessage(SetupCoordinatorActorMsg.class, msg -> {
                     startIteration();
-                    return new UpdateVelocityCoordinatorBehaviour(getContext());
+                    return new UpdateVelocityCoordinatorBehavior(getContext());
                 })
                 .build();
     }
@@ -102,11 +106,13 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    class UpdateVelocityCoordinatorBehaviour extends AbstractBehavior<CoordinatorMsg> {
-        private int calculatedPartitions = 0;
+    /**
+     * Update velocity  phase behavior
+     */
+    class UpdateVelocityCoordinatorBehavior extends AbstractBehavior<CoordinatorMsg> {
         private final List<List<Body>> buffer = new LinkedList<>();
 
-        private UpdateVelocityCoordinatorBehaviour(ActorContext<CoordinatorMsg> context) {
+        private UpdateVelocityCoordinatorBehavior(ActorContext<CoordinatorMsg> context) {
             super(context);
         }
 
@@ -126,24 +132,23 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
 
         private Behavior<CoordinatorMsg> onVelocityUpdateResult(VelocityUpdateResult msg){
-            this.calculatedPartitions++;
             this.buffer.add(msg.bodies);
-
-            if(calculatedPartitions == nWorkers){
+            if(this.buffer.size() == nWorkers){
                 updateBodies(this.buffer);
                 refs.forEach(e -> e.tell(new WorkerActor.UpdatePositionMsg(bodies)));
-                return new UpdatePositionCoordinatorBehaviour(getContext());
+                return new UpdatePositionCoordinatorBehavior(getContext());
             }
             return this;
         }
     }
 
-
-    class UpdatePositionCoordinatorBehaviour extends AbstractBehavior<CoordinatorMsg> {
-        private int calculatedPartitions = 0;
+    /**
+     * Update position phase behavior
+     */
+    class UpdatePositionCoordinatorBehavior extends AbstractBehavior<CoordinatorMsg> {
         private final List<List<Body>> buffer = new LinkedList<>();
 
-        private UpdatePositionCoordinatorBehaviour(ActorContext<CoordinatorMsg> context) {
+        private UpdatePositionCoordinatorBehavior(ActorContext<CoordinatorMsg> context) {
             super(context);
         }
 
@@ -162,10 +167,8 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         }
 
         private Behavior<CoordinatorMsg> onPositionUpdateResult(PositionUpdateResult msg){
-            this.calculatedPartitions++;
             this.buffer.add(msg.bodies);
-
-            if(calculatedPartitions == nWorkers) {
+            if(this.buffer.size() == nWorkers) {
                 updateBodies(this.buffer);
                 iter++;
                 if(viewerRef != null){// update view with a Viewer actor
@@ -178,13 +181,13 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
                     if(isViewed){
                         startIteration();
                     }
-                }else if(iter >= nSteps) { // terminate simulation without viewer
+                }else if(iter >= nSteps) { // termination of the simulation without viewer
                     getContext().getSystem().terminate();
                     return Behaviors.stopped();
                 }else{ // start new iteration
                     startIteration();
                 }
-                return new UpdateVelocityCoordinatorBehaviour(getContext());
+                return new UpdateVelocityCoordinatorBehavior(getContext());
             }
             return this;
         }
