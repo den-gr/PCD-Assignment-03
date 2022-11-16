@@ -1,4 +1,4 @@
-package simulation.actor.worker;
+package simulation.actor;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -6,8 +6,6 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import simulation.actor.coordinator.CoordinatorActor;
-import simulation.actor.coordinator.CoordinatorMsg;
 import simulation.basic.Body;
 import simulation.basic.Boundary;
 import simulation.basic.Physics;

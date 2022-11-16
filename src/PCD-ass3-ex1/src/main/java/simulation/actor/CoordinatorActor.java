@@ -1,11 +1,8 @@
-package simulation.actor.coordinator;
+package simulation.actor;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
-import simulation.actor.view.ViewActor;
-import simulation.actor.worker.WorkerActor;
-import simulation.actor.worker.WorkerMsg;
 import simulation.basic.Body;
 import simulation.basic.Boundary;
 import simulation.gui.SimulationView;
@@ -20,13 +17,16 @@ import java.util.stream.Collectors;
  */
 public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
 
+    /**
+     * Allows start the simulation
+     */
     public record SetupCoordinatorActorMsg() implements CoordinatorMsg {}
 
     public record VelocityUpdateResult(List<Body> bodies) implements CoordinatorMsg {}
 
     public record PositionUpdateResult(List<Body> bodies) implements CoordinatorMsg {}
 
-    public record ViewUpdateResult() implements CoordinatorMsg {}
+    public record ViewUpdateFeedback() implements CoordinatorMsg {}
 
     private ArrayList<Body> bodies;
     private double vt = 0;
@@ -36,13 +36,12 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     private final long nSteps;
     private final int nWorkers;
 
-    //TODO debito tecnico
-    private final List<ActorRef<WorkerMsg>> refs = new LinkedList<>();
+    private final List<ActorRef<WorkerMsg>> workersRefs = new LinkedList<>();
 
     private final ActorRef<ViewActor.UpdateViewMsg> viewerRef;
 
-    private boolean isViewed = true;
-    private boolean areBodyUpdated = true;
+    private boolean isViewed = true; // the previous frame is already showed
+    private boolean areBodyUpdated = true; // in this iteration the bodies are already updated
 
     public CoordinatorActor(ActorContext<CoordinatorMsg> context, SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
         super(context);
@@ -58,10 +57,10 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         for(int i = 0; i < nWorkers; i++){
             int myStart = bodies.size() * i / nWorkers;
             int myEnd = bodies.size() * (i+1) / nWorkers;
-            refs.add(getContext()
+            workersRefs.add(getContext()
                     .spawn(WorkerActor.create( myStart, myEnd, bounds, DT, getContext().getSelf()), "executor"+i));
         }
-        refs.forEach(e -> e.tell(new WorkerActor.SetupWorkerMsg()));
+        workersRefs.forEach(e -> e.tell(new WorkerActor.SetupWorkerMsg()));
     }
 
     public static Behavior<CoordinatorMsg> create(SimulationView viewer, ArrayList<Body> bodies, Boundary bounds, long nSteps, int nWorkers) {
@@ -94,7 +93,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
     private void startIteration(){
         this.isViewed = false;
         this.areBodyUpdated = false;
-        refs.forEach(e -> e.tell(new WorkerActor.UpdateVelocityMsg(this.bodies)));
+        workersRefs.forEach(e -> e.tell(new WorkerActor.UpdateVelocityMsg(this.bodies)));
     }
 
     /**
@@ -120,7 +119,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         public Receive<CoordinatorMsg> createReceive() {
             var receiverBuilder = newReceiveBuilder();
             if(viewerRef != null){
-                receiverBuilder.onMessage(ViewUpdateResult.class, msg -> {
+                receiverBuilder.onMessage(ViewUpdateFeedback.class, msg -> {
                     reactToViewUpdate();
                     return this;
                 });
@@ -135,7 +134,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
             this.buffer.add(msg.bodies);
             if(this.buffer.size() == nWorkers){
                 updateBodies(this.buffer);
-                refs.forEach(e -> e.tell(new WorkerActor.UpdatePositionMsg(bodies)));
+                workersRefs.forEach(e -> e.tell(new WorkerActor.UpdatePositionMsg(bodies)));
                 return new UpdatePositionCoordinatorBehavior(getContext());
             }
             return this;
@@ -156,7 +155,7 @@ public class CoordinatorActor extends AbstractBehavior<CoordinatorMsg> {
         public Receive<CoordinatorMsg> createReceive() {
             var receiverBuilder = newReceiveBuilder();
             if(viewerRef != null){
-                receiverBuilder.onMessage(ViewUpdateResult.class, msg -> {
+                receiverBuilder.onMessage(ViewUpdateFeedback.class, msg -> {
                     reactToViewUpdate();
                     return this;
                 });
