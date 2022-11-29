@@ -1,10 +1,13 @@
 package area
-import  area.Message
+import akka.actor.typed.receptionist.Receptionist
+import area.Message
 
 object AreaUtils:
   type Area = Int
   type WaterLevel = Int
 
-  enum FireStationMsg extends Message:
-    case ALARM(data: WaterLevel)
-    case OK(data: WaterLevel)
+  sealed trait State
+  case class Alarm(data: WaterLevel) extends State with Message
+  case class Ok(data: WaterLevel) extends State with Message
+
+  type FireStationMsg = State | Receptionist.Listing

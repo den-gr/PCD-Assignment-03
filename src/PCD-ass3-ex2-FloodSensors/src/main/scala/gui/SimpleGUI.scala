@@ -1,24 +1,35 @@
 package gui
 
-import javax.swing.{JFrame, JPanel, SwingUtilities}
-import java.awt.{Canvas, Color, Dimension, Graphics}
+import area.FireStation
 
-class SimpleGUI(val width: Int, val height: Int):
+import javax.swing.{JFrame, JPanel, SwingUtilities}
+import java.awt.{BorderLayout, Canvas, Color, Dimension, FlowLayout, Graphics, LayoutManager}
+
+class SimpleGUI(val width: Int, val height: Int, idArea: Int):
   self => // self-types, used to take the val reference inside the inner class
+  private final val StationPanelSize: Int = 250
   private val elementWidth = width/30
   private val frame = JFrame()
   private val canvas = Environment()
-  frame.setSize(width, height)
+  private val stationPanel = FireStationJPanel(StationPanelSize,200)
+  frame.setTitle(s"Area $idArea")
+  frame.setSize(width+StationPanelSize, height)
   frame.setVisible(true)
   canvas.setVisible(true)
+  stationPanel.setVisible(true)
   frame.setLocationRelativeTo(null)
   canvas.setSize(width, height)
-  frame.add(canvas)
+  stationPanel.setSize(200, height)
+  frame.getContentPane.setLayout(BorderLayout(0,0))
+  frame.getContentPane.add(canvas, BorderLayout.CENTER)
+  frame.getContentPane.add(stationPanel, BorderLayout.EAST)
   def render(elements: List[(Int, Int)]): Unit = SwingUtilities.invokeLater { () =>
     canvas.elements = elements
     canvas.invalidate()
     canvas.repaint()
   }
+
+  export stationPanel.printWaterLevel
 
   private class Environment() extends JPanel:
     val BLUE: Color = Color(109,109, 182)

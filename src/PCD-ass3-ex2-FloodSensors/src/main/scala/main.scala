@@ -1,6 +1,6 @@
 import akka.actor.typed.{ActorSystem, Behavior}
 import area.{FireStation, Sensor}
-import area.AreaUtils.FireStationMsg
+import area.AreaUtils.State
 import com.typesafe.config.ConfigFactory
 import gui.SimpleGUI
 
@@ -12,12 +12,14 @@ import java.awt.Toolkit
 
 
   startupWithRole("FireStation", 2551)(FireStation(1))
-  startupWithRole("Sensor", 2551)(Sensor())
+
 //  ActorSystem[FireStationMsg](FireStation(1), "FireStation")
 
 @main def run(): Unit =
   println("wow")
+  startupWithRole("Sensor", 2552)(Sensor())
 
+@main def mainGui(): Unit = runGui(1)
 
 def startupWithRole[X](role: String, port: Int)(root: => Behavior[X]): ActorSystem[X] =
   val config = ConfigFactory
@@ -30,9 +32,9 @@ def startupWithRole[X](role: String, port: Int)(root: => Behavior[X]): ActorSyst
   // Create an Akka system
   ActorSystem(root, "ClusterSystem", config)
 
-def runGui(): Unit =
+def runGui(idArea: Int): Unit =
   val screenSize = Toolkit.getDefaultToolkit.getScreenSize
-  val frontendGui = SimpleGUI(screenSize.getWidth.toInt / 2, screenSize.getHeight.toInt / 5 * 3) // init the gui
+  val frontendGui = SimpleGUI(screenSize.getWidth.toInt / 3, screenSize.getHeight.toInt / 5 * 3, idArea) // init the gui
   var list = List[(Int, Int)]()
   for i <- 1 to 100 by 10 do list = list :+ (i, i)
   frontendGui.render(list)
