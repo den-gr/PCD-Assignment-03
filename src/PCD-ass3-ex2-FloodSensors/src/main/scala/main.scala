@@ -7,19 +7,29 @@ import gui.SimpleGUI
 import java.awt.Dimension
 import java.awt.Toolkit
 
-@main def main(): Unit =
-//  runGui()
-
-
+@main def runFireStation1(): Unit =
   startupWithRole("FireStation", 2551)(FireStation(1))
 
-//  ActorSystem[FireStationMsg](FireStation(1), "FireStation")
+@main def runSensor1Area1(): Unit =
+  startupWithRole("Sensor", 2552)(Sensor(1, 1))
 
-@main def run(): Unit =
-  println("wow")
-  startupWithRole("Sensor", 2552)(Sensor())
+@main def runSensor2Area1(): Unit =
+  startupWithRole("Sensor", 2553)(Sensor(2, 1))
+  
 
-@main def mainGui(): Unit = runGui(1)
+@main def runFireStation2(): Unit =
+  startupWithRole("FireStation", 2561)(FireStation(2))
+
+
+
+@main def mainGui(): Unit =
+  runGui(1)
+  def runGui(idArea: Int): Unit =
+    val screenSize = Toolkit.getDefaultToolkit.getScreenSize
+    val frontendGui = SimpleGUI(screenSize.getWidth.toInt / 3, screenSize.getHeight.toInt / 5 * 3, idArea) // init the gui
+    var list = List[(Int, Int)]()
+    for i <- 1 to 100 by 10 do list = list :+ (i, i)
+    frontendGui.render(list)
 
 def startupWithRole[X](role: String, port: Int)(root: => Behavior[X]): ActorSystem[X] =
   val config = ConfigFactory
@@ -31,10 +41,3 @@ def startupWithRole[X](role: String, port: Int)(root: => Behavior[X]): ActorSyst
 
   // Create an Akka system
   ActorSystem(root, "ClusterSystem", config)
-
-def runGui(idArea: Int): Unit =
-  val screenSize = Toolkit.getDefaultToolkit.getScreenSize
-  val frontendGui = SimpleGUI(screenSize.getWidth.toInt / 3, screenSize.getHeight.toInt / 5 * 3, idArea) // init the gui
-  var list = List[(Int, Int)]()
-  for i <- 1 to 100 by 10 do list = list :+ (i, i)
-  frontendGui.render(list)

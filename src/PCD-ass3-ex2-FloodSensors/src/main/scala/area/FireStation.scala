@@ -30,7 +30,7 @@ object FireStation:
       case Alarm(d) =>
         println(s"Alarm in area $area")
         this
-      case Ok(d) =>
-        gui.printWaterLevel(1, d)
-        println(s"OK => $d")
+      case Ok(id, area, data) =>
+        gui.printWaterLevel(id, data)
+        println(s"OK => $data")
         this
