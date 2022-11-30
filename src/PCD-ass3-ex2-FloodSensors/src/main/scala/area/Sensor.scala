@@ -15,8 +15,18 @@ object Sensor:
   val Service: ServiceKey[SensorMsg] = ServiceKey[SensorMsg]("Sensor")
 
   def apply(): Behavior[SensorMsg] = Behaviors.setup(ctx =>
-    ctx.system.receptionist ! Receptionist.Subscribe(FireStation.Service, ctx.self);
-//    ctx.system.receptionist ! Receptionist.Register(Service, ctx.self);
+
+    ctx.spawnAnonymous[Receptionist.Listing](
+      Behaviors.setup(internal =>
+        internal.system.receptionist ! Receptionist.Subscribe(FireStation.Service, internal.self);
+        Behaviors.receiveMessage(msg =>
+          ctx.self ! msg;
+          Behaviors.same
+        )
+      )
+    );
+
+    ctx.system.receptionist ! Receptionist.Register(Service, ctx.self);
     Behaviors.withTimers(timers =>
       timers.startSingleTimer("Measuring", Measuring(), getTimeout)
       new SensorBehaviour(ctx)
