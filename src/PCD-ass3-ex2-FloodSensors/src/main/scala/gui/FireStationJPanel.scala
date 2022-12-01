@@ -20,12 +20,11 @@ class FireStationJPanel(width: Int, height: Int, area: Area) extends JPanel:
 
   override def getPreferredSize = new Dimension(width, height)
 
-  def printWaterLevel(sensorId: Int, waterLevel: Int): Unit =
-    if !map.contains(sensorId) then
-      map = map + (sensorId -> createLabel())
-      statePanel.removeAll()
-      map = Map(map.toSeq.sortWith(_._1 < _._1):_*)
-      map.values.foreach(statePanel.add(_))
+  def printWaterLevel(sensorId: Int, waterLevel: Int, activeSensors: Set[Int]): Unit =
+    map = map + (sensorId -> createLabel())
+    statePanel.removeAll()
+    map = Map(map.toSeq.sortWith(_._1 < _._1):_*)
+    map.filter(e => activeSensors.contains(e._1)).values.foreach(statePanel.add(_))
 
     map(sensorId).setText(s"Sensor $sensorId register $waterLevel water level")
 

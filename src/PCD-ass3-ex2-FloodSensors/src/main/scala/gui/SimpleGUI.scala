@@ -31,41 +31,43 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
   frame.getContentPane.add(stationPanel, BorderLayout.EAST)
   val hunit: Int = areaHeightUnit
   val wunit: Int = areaWidthUnit
-  def render(elements: List[(Int, Int)]): Unit = SwingUtilities.invokeLater { () =>
-    canvas.elements = elements
+
+  export stationPanel.printWaterLevel
+
+  def drawNewSensor(sensorId: Int, x: Int, y: Int): Unit = SwingUtilities.invokeLater { () =>
+    canvas.sensors = canvas.sensors + (sensorId -> (x, y))
+    canvas.sensors = Map(canvas.sensors.toSeq.sortWith(_._1 < _._1): _*)
     canvas.invalidate()
     canvas.repaint()
   }
 
-  export stationPanel.printWaterLevel
-  def drawNewSensor(sensorId: Int, x: Int, y: Int): Unit =
-    canvas.sensors = canvas.sensors + (sensorId -> (x, y))
-    canvas.sensors = Map(canvas.sensors.toSeq.sortWith(_._1 < _._1):_*)
+  def setActiveSensors(set: Set[Int]): Unit =SwingUtilities.invokeLater { () =>
+    canvas.activeSensors = set
     canvas.invalidate()
     canvas.repaint()
+  }
+
 
   private class Environment() extends JPanel:
     val BLUE: Color = Color(109,109, 182)
     val RED: Color = Color(213,161, 161)
     val GREEN: Color = Color(166,213, 160)
     val YELLOW: Color = Color(234,243, 68)
-    var elements: List[(Int, Int)] = List.empty
     var sensors: Map[Int, (Int, Int)] = Map()
+    var activeSensors: Set[Int] = Set.empty
     override def getPreferredSize = new Dimension(self.width, self.height)
     override def paintComponent(graphics: Graphics): Unit =
 
       graphics.clearRect(0, 0, self.width, self.height)
 
       fillZone(BLUE, 0,0, wunit*3, self.height)
-//      fillZone(GREEN, 0, hunit*3, wunit*3, hunit*2)
       fillZone(GREEN, wunit*3, 0, wunit * 2, self.height)
-//      fillZone(YELLOW, wunit * 3, hunit * 3, wunit * 2, hunit * 2)
 
 
       drawSensor(Color.WHITE,  wunit * 4, hunit * 4, 9)
 
       graphics.setColor(Color.BLACK)
-      sensors.foreach({ case (id->(x,y)) => drawSensor(Color.WHITE, x, y, id)})
+      sensors.filter(e => activeSensors.contains(e._1)).foreach({ case (id->(x,y)) => drawSensor(Color.WHITE, x, y, id)})
 
       def fillZone(c: Color, x: Int, y: Int, w: Int, h: Int): Unit =
         graphics.setColor(c)

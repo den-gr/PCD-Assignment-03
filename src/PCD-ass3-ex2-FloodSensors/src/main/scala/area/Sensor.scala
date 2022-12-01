@@ -37,6 +37,7 @@ object Sensor:
   sealed trait SensorState
   case class Measuring() extends SensorState with Message
   case class Setup(d: String) extends SensorState with Message
+  case class Leave(idSensor: Int, leader: Int) extends SensorState with Message
 
 
   private class SensorBehaviour(context: ActorContext[SensorMsg], val id: ID, val area: Area,val coordinates: (Int,Int))
@@ -48,20 +49,19 @@ object Sensor:
       case m: Receptionist.Listing =>
         m match
           case FireStation.Service.Listing(listings) =>
+            println(s"listing fs $listings")
             if fireStationRef.isEmpty && listings.nonEmpty then
               listings.foreach(_ ! Hello(id, area, coordinates))
             else if listings.size > fireStationRef.size then
-              listings.last !  Hello(id, area, coordinates)
+              listings.last ! Hello(id, area, coordinates)
             fireStationRef = listings.toList
           case Service.Listing(listings) =>
-            if listings.size > sensorsRefs.size then
-
             sensorsRefs = listings.toList
         this
       case Measuring() =>
         val data = Random.nextInt(100)
         println(s"New measuring: $data")
-        sensorsRefs.foreach(e => if e != context.self then e ! Setup(data.toString))
+//        sensorsRefs.foreach(e => if e != context.self then e ! Setup(data.toString))
         if fireStationRef.nonEmpty then fireStationRef.foreach(_ ! Ok(id, area, data))
         Behaviors.withTimers(timers =>
           timers.startSingleTimer("Measuring", Measuring(), getTimeout)
