@@ -9,8 +9,7 @@ import scala.language.postfixOps
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 import gui.SimpleGUI
-
-import java.awt.Toolkit
+import area.AreaUtils.*
 object FireStation:
 
 
@@ -23,8 +22,7 @@ object FireStation:
 
   private class FireStationActor(context: ActorContext[FireStationMsg], val area: Area)
       extends AbstractBehavior[FireStationMsg](context):
-    private val screenSize = Toolkit.getDefaultToolkit.getScreenSize
-    private val gui = SimpleGUI(screenSize.getWidth.toInt / 3, screenSize.getHeight.toInt / 5 * 3, 1)
+    private val gui = SimpleGUI(areaWidthUnit*5, areaHeightUnit * 5, area)
 
     override def onMessage(msg: FireStationMsg): Behavior[FireStationMsg] = msg match
       case Alarm(d) =>
@@ -33,4 +31,7 @@ object FireStation:
       case Ok(id, area, data) =>
         gui.printWaterLevel(id, data)
         println(s"OK => $data")
+        this
+      case Hello(sensorId, sensorArea, (x, y)) =>
+        gui.drawNewSensor(sensorId, x, y)
         this

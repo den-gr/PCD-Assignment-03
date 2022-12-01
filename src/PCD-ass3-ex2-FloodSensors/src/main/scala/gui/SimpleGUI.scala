@@ -1,28 +1,36 @@
 package gui
 
+import area.AreaUtils.Area
+import area.AreaUtils.*
 import area.FireStation
 
 import javax.swing.{JFrame, JPanel, SwingUtilities}
-import java.awt.{BorderLayout, Canvas, Color, Dimension, FlowLayout, Graphics, LayoutManager}
+import java.awt.{BorderLayout, Canvas, Color, Component, Dimension, FlowLayout, Graphics, LayoutManager}
 
-class SimpleGUI(val width: Int, val height: Int, idArea: Int):
+class SimpleGUI(val width: Int, val height: Int, idArea: Area):
   self => // self-types, used to take the val reference inside the inner class
-  private final val StationPanelSize: Int = 250
-  private val elementWidth = width/30
+  private final val stationPanelSize: Int = 250
+  private val elementWidth = width/40 + height/40
   private val frame = JFrame()
   private val canvas = Environment()
-  private val stationPanel = FireStationJPanel(StationPanelSize,200)
-  frame.setTitle(s"Area $idArea")
-  frame.setSize(width+StationPanelSize, height)
+  private val stationPanel = FireStationJPanel(stationPanelSize,200, idArea)
+  frame.setTitle(s"Fire Station GUI of area $idArea")
+  frame.setSize(width+stationPanelSize, height)
   frame.setVisible(true)
   canvas.setVisible(true)
   stationPanel.setVisible(true)
-  frame.setLocationRelativeTo(null)
+  if idArea == 1 then
+    frame.setLocation(elementWidth, areaHeightUnit)
+  else
+    frame.setLocation(width + stationPanelSize, areaHeightUnit)
+
   canvas.setSize(width, height)
   stationPanel.setSize(200, height)
   frame.getContentPane.setLayout(BorderLayout(0,0))
   frame.getContentPane.add(canvas, BorderLayout.CENTER)
   frame.getContentPane.add(stationPanel, BorderLayout.EAST)
+  val hunit: Int = areaHeightUnit
+  val wunit: Int = areaWidthUnit
   def render(elements: List[(Int, Int)]): Unit = SwingUtilities.invokeLater { () =>
     canvas.elements = elements
     canvas.invalidate()
@@ -30,6 +38,11 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Int):
   }
 
   export stationPanel.printWaterLevel
+  def drawNewSensor(sensorId: Int, x: Int, y: Int): Unit =
+    canvas.sensors = canvas.sensors + (sensorId -> (x, y))
+    canvas.sensors = Map(canvas.sensors.toSeq.sortWith(_._1 < _._1):_*)
+    canvas.invalidate()
+    canvas.repaint()
 
   private class Environment() extends JPanel:
     val BLUE: Color = Color(109,109, 182)
@@ -37,30 +50,31 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Int):
     val GREEN: Color = Color(166,213, 160)
     val YELLOW: Color = Color(234,243, 68)
     var elements: List[(Int, Int)] = List.empty
+    var sensors: Map[Int, (Int, Int)] = Map()
     override def getPreferredSize = new Dimension(self.width, self.height)
     override def paintComponent(graphics: Graphics): Unit =
-      val hunit = self.height/5
-      val wunit = self.width/5
 
       graphics.clearRect(0, 0, self.width, self.height)
 
-      fillZone(BLUE, 0,0, wunit*3, hunit*3)
-      fillZone(GREEN, 0, hunit*3, wunit*3, hunit*2)
-      fillZone(RED, wunit*3, 0, wunit * 2, hunit * 3)
-      fillZone(YELLOW, wunit * 3, hunit * 3, wunit * 2, hunit * 2)
+      fillZone(BLUE, 0,0, wunit*3, self.height)
+//      fillZone(GREEN, 0, hunit*3, wunit*3, hunit*2)
+      fillZone(GREEN, wunit*3, 0, wunit * 2, self.height)
+//      fillZone(YELLOW, wunit * 3, hunit * 3, wunit * 2, hunit * 2)
 
 
-      drawSensor(Color.WHITE,  wunit * 4, hunit * 4)
+      drawSensor(Color.WHITE,  wunit * 4, hunit * 4, 9)
 
       graphics.setColor(Color.BLACK)
-      elements.foreach((x, y) => graphics.drawOval(x, y, elementWidth, elementWidth))
+      sensors.foreach({ case (id->(x,y)) => drawSensor(Color.WHITE, x, y, id)})
 
       def fillZone(c: Color, x: Int, y: Int, w: Int, h: Int): Unit =
         graphics.setColor(c)
         graphics.fillRect(x,y, w, h)
 
-      def drawSensor(c: Color, x: Int, y: Int): Unit =
+      def drawSensor(c: Color = Color.WHITE, x: Int, y: Int, id: Int): Unit =
         graphics.setColor(c)
         graphics.fillOval(x, y, elementWidth, elementWidth)
         graphics.setColor(Color.BLACK)
         graphics.drawOval(x, y, elementWidth, elementWidth)
+        graphics.drawString(id.toString, x+elementWidth/3, y+elementWidth/4 *3)
+

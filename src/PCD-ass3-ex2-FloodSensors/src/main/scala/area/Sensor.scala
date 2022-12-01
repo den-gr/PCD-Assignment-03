@@ -15,7 +15,7 @@ object Sensor:
   type SensorMsg = SensorState | Receptionist.Listing
 
   val Service: ServiceKey[SensorMsg] = ServiceKey[SensorMsg]("Sensor")
-  def apply(id: ID, area: Area): Behavior[SensorMsg] = Behaviors.setup(ctx =>
+  def apply(id: ID, area: Area, coordinates: (Int, Int)): Behavior[SensorMsg] = Behaviors.setup(ctx =>
 
     ctx.spawnAnonymous[Receptionist.Listing](
       Behaviors.setup(internal =>
@@ -30,7 +30,7 @@ object Sensor:
     ctx.system.receptionist ! Receptionist.Register(Service, ctx.self);
     Behaviors.withTimers(timers =>
       timers.startSingleTimer("Measuring", Measuring(), getTimeout)
-      new SensorBehaviour(ctx, id, area)
+      new SensorBehaviour(ctx, id, area, (coordinates))
     )
   )
 
@@ -38,22 +38,30 @@ object Sensor:
   case class Measuring() extends SensorState with Message
   case class Setup(d: String) extends SensorState with Message
 
-  private class SensorBehaviour(context: ActorContext[SensorMsg], val id: ID, val area: Area)
+
+  private class SensorBehaviour(context: ActorContext[SensorMsg], val id: ID, val area: Area,val coordinates: (Int,Int))
       extends AbstractBehavior[SensorMsg](context):
     var fireStationRef: List[ActorRef[State]] = List.empty
     var sensorsRefs: List[ActorRef[SensorMsg]] = List.empty
 
     override def onMessage(msg: SensorMsg): Behavior[SensorMsg] = msg match
-      case m: Receptionist.Listing => m match
-        case FireStation.Service.Listing(listings) => fireStationRef = listings.toList
-        case Service.Listing(listings) => sensorsRefs = listings.toList
+      case m: Receptionist.Listing =>
+        m match
+          case FireStation.Service.Listing(listings) =>
+            if fireStationRef.isEmpty && listings.nonEmpty then
+              listings.foreach(_ ! Hello(id, area, coordinates))
+            else if listings.size > fireStationRef.size then
+              listings.last !  Hello(id, area, coordinates)
+            fireStationRef = listings.toList
+          case Service.Listing(listings) =>
+            if listings.size > sensorsRefs.size then
+
+            sensorsRefs = listings.toList
         this
       case Measuring() =>
         val data = Random.nextInt(100)
         println(s"New measuring: $data")
-        sensorsRefs.foreach(e =>
-          if e != context.self then e ! Setup(data.toString)
-        )
+        sensorsRefs.foreach(e => if e != context.self then e ! Setup(data.toString))
         if fireStationRef.nonEmpty then fireStationRef.foreach(_ ! Ok(id, area, data))
         Behaviors.withTimers(timers =>
           timers.startSingleTimer("Measuring", Measuring(), getTimeout)
