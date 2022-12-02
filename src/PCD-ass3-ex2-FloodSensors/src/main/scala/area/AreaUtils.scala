@@ -12,7 +12,7 @@ object AreaUtils:
   sealed trait State
   case class Alarm(data: WaterLevel) extends State with Message
   case class Ok(sensorId: ID, area: Area, data: WaterLevel) extends State with Message
-  case class Hello(sensorId: Int, area: Area, coordinates: (Int,Int)) extends  State with Message
+  case class Hello(sensorId: ID, area: Area, coordinates: (Int,Int)) extends  State with Message
   case class Clean() extends State with Message
 
   type FireStationMsg = State | Receptionist.Listing

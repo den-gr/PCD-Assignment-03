@@ -33,11 +33,13 @@ object FireStation:
       case Ok(sensorId, sensorArea, data) =>
         if sensorArea == area then
           activeSensors = activeSensors + sensorId
-        gui.printWaterLevel(sensorId, data, activeSensors)
-        println(s"OK => $data")
+        gui.updateWaterLevel(sensorId, data)
+        println(s"OK $sensorId => $data")
         this
       case Hello(sensorId, sensorArea, (x, y)) =>
-        gui.drawNewSensor(sensorId, x, y)
+        gui.addNewSensor(sensorId, x, y)
+        if sensorArea == area then
+          activeSensors = activeSensors + sensorId
         this
       case Clean() =>
         println("cleaning")
