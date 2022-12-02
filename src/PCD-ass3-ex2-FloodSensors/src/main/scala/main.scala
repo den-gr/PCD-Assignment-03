@@ -30,6 +30,9 @@ val AREA_2 = 2
 @main def runFireStation2(): Unit =
   startupWithRole("FireStation", 2560)(FireStation(AREA_2))
 
+@main def runSensor4Area2(): Unit =
+  startupWithRole("Sensor", 2561)(Sensor(4, AREA_2, (areaWidthUnit * 4, areaHeightUnit * 2)))
+
 
 def startupWithRole[X](role: String, port: Int)(root: => Behavior[X]): ActorSystem[X] =
   val config = ConfigFactory
