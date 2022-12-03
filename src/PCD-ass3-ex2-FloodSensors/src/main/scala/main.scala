@@ -3,7 +3,6 @@ import area.{FireStation, Sensor}
 import area.AreaUtils.State
 import com.typesafe.config.ConfigFactory
 import gui.SimpleGUI
-
 import java.awt.Dimension
 import java.awt.Toolkit
 import area.AreaUtils.*
