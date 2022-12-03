@@ -25,6 +25,7 @@ val AREA_2 = 2
 @main def runSensor3Area1(): Unit =
   startupWithRole("Sensor", 2554)(Sensor(3, AREA_1, (areaWidthUnit * 2, areaHeightUnit * 3)))
 
+
 /** Area 2
   */
 @main def runFireStation2(): Unit =
@@ -44,4 +45,3 @@ def startupWithRole[X](role: String, port: Int)(root: => Behavior[X]): ActorSyst
 
   // Create an Akka system
   ActorSystem(root, "ClusterSystem", config)
-

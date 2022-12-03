@@ -34,7 +34,7 @@ object FireStation:
 
   private class FireStationActor(context: ActorContext[FireStationMsg], val area: Area)
       extends AbstractBehavior[FireStationMsg](context):
-    private val gui = SimpleGUI(areaWidthUnit*5, areaHeightUnit * 5, area)
+    private val gui = SimpleGUI(areaWidthUnit * 5, areaHeightUnit * 5, area)
     gui.addActionListenerForButton(_ => removeWater())
     private var activeSensors: Set[Int] = Set.empty
     var sensorsRefs: List[ActorRef[SensorMsg]] = List.empty
@@ -43,14 +43,13 @@ object FireStation:
       sensorsRefs.foreach(_ ! RemoveWater())
 
     override def onMessage(msg: FireStationMsg): Behavior[FireStationMsg] = msg match
-      case Alarm(sensorId, sensorArea, data) =>
+      case Alarm(sensorId, _, data) =>
         activeSensors = activeSensors + sensorId
         gui.updateWaterLevel(sensorId, data, true)
         this
-      case Ok(sensorId, sensorArea, data) =>
+      case Ok(sensorId, _, data) =>
         activeSensors = activeSensors + sensorId
         gui.updateWaterLevel(sensorId, data)
-//        println(s"OK $sensorId => $data")
         this
       case Hello(sensorId, sensorArea, (x, y)) =>
         gui.activeSensors += sensorId // speed up visualisation
@@ -66,9 +65,8 @@ object FireStation:
           case FireStation.sensorService.Listing(listings) => sensorsRefs = listings.toList
         this
 
-    private def clean(): Behavior[FireStationMsg] = {
+    private def clean(): Behavior[FireStationMsg] =
       Behaviors.withTimers[FireStationMsg] { timers =>
         timers.startSingleTimer("Cleaning", Clean(), FiniteDuration(5, TimeUnit.SECONDS))
         this
       }
-    }

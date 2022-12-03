@@ -1,16 +1,12 @@
 package gui
 
-import area.AreaUtils.Area
 import area.AreaUtils.*
 import area.FireStation
 import gui.MyColors.*
-
 import java.awt.event.ActionListener
-import java.awt.{Color, Component, Dimension, Font, Graphics}
 import javax.swing.border.Border
-import javax.swing.{BorderFactory, BoxLayout, JButton, JLabel, JPanel, SwingConstants, SwingUtilities}
-import javax.swing.{JFrame, JPanel, SwingUtilities}
-import java.awt.{BorderLayout, Canvas, Color, Component, Dimension, FlowLayout, Graphics, LayoutManager}
+import javax.swing.*
+import java.awt.*
 import scala.collection.mutable
 
 class SimpleGUI(val width: Int, val height: Int, idArea: Area):
@@ -126,7 +122,7 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
       val areaSensors = self.sensors.values.filter(_.area == idArea)
       areaSensors
         .foreach(s =>
-          statePanel.add(s.label);
+          statePanel.add(s.label)
           if self.activeSensors.contains(s.id) then
             s.label.setText(s"Sensor ${s.id} detect ${s.waterLevel} water level")
           else s.label.setText(s"Sensor ${s.id} probably is offline")
@@ -137,7 +133,7 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
       else
         this.setBackground(Color.GREEN)
         stateLabel.setText(s"Area $area state: OK")
-        
+
 
     def createButton(name: String): JButton =
       val b = new JButton(name):
