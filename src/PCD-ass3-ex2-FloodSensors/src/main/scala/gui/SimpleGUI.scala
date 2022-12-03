@@ -24,9 +24,9 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
       var alarm: Boolean = false,
       area: Area
   )
-  // sized
-  private final val hunit: Int = areaHeightUnit
-  private final val wunit: Int = areaWidthUnit
+  // sizes
+  private final val hunit: Int = areaHeightUnit // alias
+  private final val wunit: Int = areaWidthUnit // alias
   private final val stationPanelSize: Int = 250
   private val elementWidth = width / 40 + height / 40
 
@@ -39,15 +39,15 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
   frame.setVisible(true)
   canvas.setVisible(true)
   fireStationPanel.setVisible(true)
-  if idArea == 1 then frame.setLocation(elementWidth, areaHeightUnit)
-  else frame.setLocation(width + stationPanelSize, areaHeightUnit)
+  if idArea == 1 then frame.setLocation(elementWidth, hunit)
+  else frame.setLocation(width + stationPanelSize, hunit)
   canvas.setSize(width, height)
   fireStationPanel.setSize(200, height)
   frame.getContentPane.setLayout(BorderLayout(0, 0))
   frame.getContentPane.add(canvas, BorderLayout.CENTER)
   frame.getContentPane.add(fireStationPanel, BorderLayout.EAST)
 
-  // gui state
+  // gui area state
   var activeSensors: Set[ID] = Set.empty
   private val sensors: mutable.LinkedHashMap[ID, GUISensor] = mutable.LinkedHashMap()
 
@@ -114,7 +114,8 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
     statePanel.setBackground(Color.WHITE)
     this.add(statePanel)
     this.add(createLabel("Alarm will activates after water level 100"))
-    this.add(createLabel(s"Area $area state: OK"))
+    val stateLabel: JLabel = createLabel(s"Area $area state: OK")
+    this.add(stateLabel)
     val button: JButton = createButton("Disable alarm ( -30 water lvl)")
     this.add(button)
 
@@ -122,14 +123,21 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
 
     def update(): Unit =
       statePanel.removeAll()
-      self.sensors.values
-        .filter(_.area == idArea)
+      val areaSensors = self.sensors.values.filter(_.area == idArea)
+      areaSensors
         .foreach(s =>
           statePanel.add(s.label);
           if self.activeSensors.contains(s.id) then
             s.label.setText(s"Sensor ${s.id} detect ${s.waterLevel} water level")
           else s.label.setText(s"Sensor ${s.id} probably is offline")
         )
+      if areaSensors.nonEmpty && areaSensors.forall(_.alarm) then
+        this.setBackground(MyColors.RED)
+        stateLabel.setText(s"Area $area state: Alarm")
+      else
+        this.setBackground(Color.GREEN)
+        stateLabel.setText(s"Area $area state: OK")
+        
 
     def createButton(name: String): JButton =
       val b = new JButton(name):

@@ -4,14 +4,12 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import area.AreaUtils.*
-
 import scala.language.postfixOps
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 import gui.SimpleGUI
 import area.AreaUtils.*
 import area.Sensor.{RemoveWater, SensorMsg}
-
 
 object FireStation:
   val Service: ServiceKey[FireStationMsg] = ServiceKey[FireStationMsg]("FireStation")
@@ -37,7 +35,7 @@ object FireStation:
   private class FireStationActor(context: ActorContext[FireStationMsg], val area: Area)
       extends AbstractBehavior[FireStationMsg](context):
     private val gui = SimpleGUI(areaWidthUnit*5, areaHeightUnit * 5, area)
-    gui.addActionListenerForButton(ac => removeWater())
+    gui.addActionListenerForButton(_ => removeWater())
     private var activeSensors: Set[Int] = Set.empty
     var sensorsRefs: List[ActorRef[SensorMsg]] = List.empty
 
@@ -55,9 +53,9 @@ object FireStation:
 //        println(s"OK $sensorId => $data")
         this
       case Hello(sensorId, sensorArea, (x, y)) =>
+        gui.activeSensors += sensorId // speed up visualisation
+        activeSensors += sensorId
         gui.addNewSensor(sensorId, x, y, sensorArea)
-        if sensorArea == area then
-          activeSensors = activeSensors + sensorId
         this
       case Clean() =>
         gui.setActiveSensors(activeSensors)
