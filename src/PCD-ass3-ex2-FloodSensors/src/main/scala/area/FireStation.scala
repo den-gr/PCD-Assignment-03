@@ -47,14 +47,12 @@ object FireStation:
     override def onMessage(msg: FireStationMsg): Behavior[FireStationMsg] = msg match
       case Alarm(sensorId, sensorArea, data) =>
         activeSensors = activeSensors + sensorId
-
         gui.updateWaterLevel(sensorId, data, true)
-        println(s"Alarm in area $area")
         this
       case Ok(sensorId, sensorArea, data) =>
         activeSensors = activeSensors + sensorId
         gui.updateWaterLevel(sensorId, data)
-        println(s"OK $sensorId => $data")
+//        println(s"OK $sensorId => $data")
         this
       case Hello(sensorId, sensorArea, (x, y)) =>
         gui.addNewSensor(sensorId, x, y, sensorArea)
@@ -62,7 +60,6 @@ object FireStation:
           activeSensors = activeSensors + sensorId
         this
       case Clean() =>
-        println("cleaning")
         gui.setActiveSensors(activeSensors)
         activeSensors = Set.empty
         clean()

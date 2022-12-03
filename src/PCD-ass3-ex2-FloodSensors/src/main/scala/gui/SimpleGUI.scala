@@ -113,8 +113,9 @@ class SimpleGUI(val width: Int, val height: Int, idArea: Area):
     val statePanel: JPanel = JPanel()
     statePanel.setBackground(Color.WHITE)
     this.add(statePanel)
+    this.add(createLabel("Alarm will activates after water level 100"))
     this.add(createLabel(s"Area $area state: OK"))
-    val button: JButton = createButton("Disable alarm")
+    val button: JButton = createButton("Disable alarm ( -30 water lvl)")
     this.add(button)
 
     override def getPreferredSize = new Dimension(width, height)
