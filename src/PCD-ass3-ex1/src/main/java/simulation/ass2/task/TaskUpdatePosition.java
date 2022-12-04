@@ -1,4 +1,4 @@
-package simulation.task;
+package simulation.ass2.task;
 
 import simulation.basic.Body;
 import simulation.basic.Boundary;

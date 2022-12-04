@@ -1,4 +1,4 @@
-package simulation.monitor;
+package simulation.ass1.monitor;
 
 public interface Barrier {
 
